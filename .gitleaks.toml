@@ -1,0 +1,25 @@
+title = "Gitleaks configuration for Bird Project"
+
+
+#SSH Private Keys
+[[rules]]
+id = "ssh-private-key"
+description = "Detects SSH private keys (RSA, ECDSA, ED25519, DSA)."
+regex = '''-----BEGIN ((EC|PGP|DSA|RSA|OPENSSH) )?PRIVATE KEY( BLOCK)?-----'''
+tags = ["key", "ssh", "privatekey"]
+
+#API-keys
+[[rules]]
+id = "api-keys"
+description = "API Key patterns"
+regex = '''(ghp|gho|ghu|ghs|ghr)_[a-zA-Z0-9]{36}|xox[baprs]-([0-9a-zA-Z]{10,48})|sk_live_[0-9a-zA-Z]{24}'''
+tags = ["key", "api", "token"]
+keywords = ["key", "token", "secret"]
+
+#Password credential
+[[rules]]
+id = "generic-password"
+description = "Detects password credentials"
+regex = '''(?i)(password|pass|secret|pwd|token)\s*[:=]\s*['"`]([a-zA-Z0-9!@#$%^&*()_+=\-[\]{}|;:'",.<>/?~]{8,})['"`]'''
+tags = ["secret", "password", "credential"]
+keywords = ["password", "pass", "secret", "pwd", "token"]
