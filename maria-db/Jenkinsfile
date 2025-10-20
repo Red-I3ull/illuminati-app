@@ -1,0 +1,57 @@
+pipeline {
+    agent any
+
+    environment {
+        DB_ROOT_PASSWORD = credentials('mariadb-root-password')
+        DB_PASSWORD = credentials('mariadb-user-password')
+        DB_DATABASE = 'illuminati-mariadb'
+        DB_USER = 'mason'
+
+        IMAGE_NAME = 'mariadb'
+
+        AWS_REGION = 'us-east-1'
+        ECR_REGISTRY = '997221415658.dkr.ecr.us-east-1.amazonaws.com/'
+        ECR_REPOSITORY = 'ecr-repo-for-mariadb-docker-img'
+        IMAGE_TAG = "${BUILD_NUMBER}-${GIT_COMMIT?.take(7) ?: 'latest'}"
+    }
+
+    stages {
+        stage('Checkout git') {
+            steps {
+                // Get some code from a GitHub repository
+                git branch: 'main', credentialsId: '#', url: '#'
+                sh "ls -lart ./*"
+                }
+            }
+        stage('Build Docker Image') {
+            steps {
+                dir ('maria-db/') {
+                    script {
+                        sh '''
+                            docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                script {
+                    withAWS(credentials: 'aws-credentials', region: "${AWS_REGION}") {
+                        sh '''
+                            aws ecr get-login-password --region ${AWS_REGION} | \
+                            docker login --username AWS --password-stdin ${ECR_REGISTRY}
+
+                            docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+                            docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${ECR_REGISTRY}/${ECR_REPOSITORY}:build-${BUILD_NUMBER}
+
+                            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+                            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:build-${BUILD_NUMBER}
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}
