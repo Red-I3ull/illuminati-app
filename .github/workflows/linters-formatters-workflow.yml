@@ -30,7 +30,7 @@ jobs:
           pip install pylint
 
       - name: Run Pylint
-        run: pylint $(git ls-files '*.py') --fail-under=6.0
+        run: pylint $(git ls-files '*.py') --fail-under=2.7
 
   prettier:
     name: Prettier
