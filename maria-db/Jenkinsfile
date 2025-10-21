@@ -29,6 +29,7 @@ pipeline {
                 dir ('maria-db/') {
                     script {
                         sh '''
+                            cd mariadb
                             docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .
                         '''
                     }
