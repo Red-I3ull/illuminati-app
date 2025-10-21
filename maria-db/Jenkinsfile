@@ -2,27 +2,28 @@ pipeline {
     agent any
 
     environment {
-        DB_ROOT_PASSWORD = credentials('mariadb-root-password')
-        DB_PASSWORD = credentials('mariadb-user-password')
-        DB_DATABASE = 'illuminati-mariadb'
-        DB_USER = 'mason'
+        MYSQL_ROOT_PASSWORD = credentials('mariadb-root-password')
+        MYSQL_PASSWORD = credentials('mariadb-user-password')
+        MYSQL_DATABASE = 'illuminati'
+        MYSQL_USER = 'mason'
 
         IMAGE_NAME = 'mariadb'
 
         AWS_REGION = 'us-east-1'
-        ECR_REGISTRY = '997221415658.dkr.ecr.us-east-1.amazonaws.com/'
-        ECR_REPOSITORY = 'ecr-repo-for-mariadb-docker-img'
-        IMAGE_TAG = "${BUILD_NUMBER}-${GIT_COMMIT?.take(7) ?: 'latest'}"
+        ECR_REGISTRY = '997221415658.dkr.ecr.us-east-1.amazonaws.com'
+        ECR_REPOSITORY = 'illuminati-mariadb-img'
+        IMAGE_TAG = "v-${BUILD_NUMBER}"
     }
 
     stages {
         stage('Checkout git') {
             steps {
                 // Get some code from a GitHub repository
-                git branch: 'main', credentialsId: '#', url: '#'
+                git branch: 'main', credentialsId: 'ssh-for-github', url: 'git@github.com:Red-I3ull/illuminati-app-backend.git'
                 sh "ls -lart ./*"
                 }
             }
+
         stage('Build Docker Image') {
             steps {
                 dir ('maria-db/') {
