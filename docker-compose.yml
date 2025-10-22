@@ -10,19 +10,4 @@ services:
       - "8000:8000"
     environment:
       - DEBUG=1
-    depends_on:
-      - db
 
-  db:
-    image: postgres:15-alpine
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=illbackand
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    ports:
-      - "5432:5432"
-
-volumes:
-  postgres_data:
