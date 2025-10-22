@@ -12,7 +12,7 @@ pipeline {
         AWS_REGION = 'us-east-1'
         ECR_REGISTRY = '997221415658.dkr.ecr.us-east-1.amazonaws.com'
         ECR_REPOSITORY = 'illuminati-mariadb-img'
-        IMAGE_TAG = "v-${BUILD_NUMBER}"
+        IMAGE_TAG = "v-${BUILD_NUMBER}" // fix tag
     }
 
     stages {
@@ -49,7 +49,7 @@ pipeline {
                             docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
                             docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:build-${BUILD_NUMBER}
                         '''
-                    }
+                    } //add make files there
                 }
             }
         }
