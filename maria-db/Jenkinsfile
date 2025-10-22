@@ -1,0 +1,57 @@
+pipeline {
+    agent any
+
+    environment {
+        MYSQL_ROOT_PASSWORD = credentials('mariadb-root-password')
+        MYSQL_PASSWORD = credentials('mariadb-user-password')
+        MYSQL_DATABASE = 'illuminati'
+        MYSQL_USER = 'mason'
+
+        IMAGE_NAME = 'mariadb'
+
+        AWS_REGION = 'us-east-1'
+        ECR_REGISTRY = '997221415658.dkr.ecr.us-east-1.amazonaws.com'
+        ECR_REPOSITORY = 'illuminati-mariadb-img'
+        IMAGE_TAG = "v-${BUILD_NUMBER}" // fix tag
+    }
+
+    stages {
+        stage('Checkout git') {
+            steps {
+                // Get some code from a GitHub repository
+                git branch: 'main', credentialsId: 'ssh-for-github', url: 'git@github.com:Red-I3ull/illuminati-app-backend.git'
+                sh "ls -lart ./*"
+                }
+            }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh '''
+                        cd maria-db
+                        docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .
+                    '''
+                }
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                script {
+                    withAWS(credentials: 'aws-credentials', region: "${AWS_REGION}") {
+                        sh '''
+                            aws ecr get-login-password --region ${AWS_REGION} | \
+                            docker login --username AWS --password-stdin ${ECR_REGISTRY}
+
+                            docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+                            docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${ECR_REGISTRY}/${ECR_REPOSITORY}:build-${BUILD_NUMBER}
+
+                            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+                            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:build-${BUILD_NUMBER}
+                        '''
+                    } //add make files there
+                }
+            }
+        }
+    }
+}
