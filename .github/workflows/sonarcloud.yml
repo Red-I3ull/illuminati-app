@@ -2,9 +2,9 @@ name: SonarCloud Analysis
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ['BULL-11-Configure-SonarQube-for-our-repositories']
   pull_request:
-    branches: [ "main" ]
+    branches: ['main']
     types: [opened, synchronize, reopened]
   workflow_dispatch:
 
@@ -17,12 +17,12 @@ jobs:
   sonarcloud:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -89,11 +89,11 @@ jobs:
             const projectKey = 'Red-I3ull_illuminati-app-backend';
             const organization = 'red-i3ull';
             const sonarUrl = `https://sonarcloud.io/dashboard?id=${projectKey}`;
-            
+
             const body = qualityGateStatus === 'PASSED' 
               ? `✅ **SonarCloud Quality Gate Passed!**\n\n[View Details on SonarCloud](${sonarUrl})`
               : `❌ **SonarCloud Quality Gate Failed!**\n\n[View Details on SonarCloud](${sonarUrl})\n\nPlease fix the issues before merging.`;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
