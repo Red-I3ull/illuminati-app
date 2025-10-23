@@ -2,7 +2,7 @@ name: SonarCloud Analysis
 
 on:
   push:
-    branches: ['BULL-11-Configure-SonarQube-for-our-repositories']
+    branches: ['main']
   pull_request:
     branches: ['main']
     types: [opened, synchronize, reopened]
@@ -23,11 +23,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
-
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v6
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
