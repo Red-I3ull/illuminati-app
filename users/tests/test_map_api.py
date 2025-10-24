@@ -1,9 +1,11 @@
+import os
+from dotenv import load_dotenv
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from users.models import Marker, Role
-
+load_dotenv()
 
 User = get_user_model()
 
@@ -11,24 +13,25 @@ class MarkerViewSetTests(APITestCase):
 
     def setUp(self):
         self.client = APIClient()
+        test_password = os.environ.get('TEST_PASSWORD')
         self.mason_user = User.objects.create_user(
             email='mason@example.com',
-            password='password123',
+            password=test_password,
             role=Role.MASON
         )
         self.silver_user = User.objects.create_user(
             email='silver@example.com',
-            password='password123',
+            password=test_password,
             role=Role.SILVER
         )
         self.golden_user = User.objects.create_user(
             email='golden@example.com',
-            password='password123',
+            password=test_password,
             role=Role.GOLDEN
         )
         self.architect_user = User.objects.create_user(
             email='architect@example.com',
-            password='password123',
+            password=test_password,
             role=Role.ARCHITECT
         )
 
