@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
     'rest_framework',
     'corsheaders',
     'users', 
@@ -101,7 +102,6 @@ DATABASES = {
         'PORT': config('DBPORT')
     }
 }
-
 
 
 # Password validation
