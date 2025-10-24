@@ -3,9 +3,9 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
 
-class CustomUserManager(BaseUserManager): 
+class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields ):
-        if not email: 
+        if not email:
             raise ValueError('Email is a required field')
 
         email = self.normalize_email(email)
@@ -19,12 +19,25 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, password, **extra_fields)
 
+class Role(models.TextChoices):
+    GOLDEN = 'GOLDEN', 'Golden'
+    SILVER = 'SILVER', 'Silver'
+    ARCHITECT = 'ARCHITECT', 'Architect'
+    MASON = 'MASON', 'Mason'
+
 class CustomUser(AbstractUser):
     email = models.EmailField(max_length=200, unique=True)
     birthday = models.DateField(null=True, blank=True)
     username = models.CharField(max_length=200, null=True, blank=True)
 
     objects = CustomUserManager()
+
+    role = models.CharField(
+        max_length=10,
+        choices=Role.choices,
+        default=Role.MASON,
+        help_text="The role of the user in the system"
+    )
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -34,7 +47,7 @@ class Marker(models.Model):
     name = models.CharField(max_length=250)
     lat = models.FloatField(null=True, blank=True)
     lng = models.FloatField(null=True, blank=True)
-    user_id = models.ForeignKey(
+    user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
