@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from .map_api import MarkerView
 from rest_framework.routers import DefaultRouter
-from .views import * 
+from .views import *
 
 router = DefaultRouter()
 router.register('register', RegisterViewset, basename='register')
