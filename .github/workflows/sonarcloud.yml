@@ -84,8 +84,8 @@ jobs:
             const sonarUrl = `https://sonarcloud.io/dashboard?id=${projectKey}`;
 
             const body = qualityGateStatus === 'PASSED' 
-              ? `✅ **SonarCloud Quality Gate Passed!**\n\n[View Details on SonarCloud](${sonarUrl})`
-              : `❌ **SonarCloud Quality Gate Failed!**\n\n[View Details on SonarCloud](${sonarUrl})\n\nPlease fix the issues before merging.`;
+              ? `PASSED **SonarCloud Quality Gate Passed!**\n\n[View Details on SonarCloud](${sonarUrl})`
+              : `FAILED **SonarCloud Quality Gate Failed!**\n\n[View Details on SonarCloud](${sonarUrl})\n\nPlease fix the issues before merging.`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
