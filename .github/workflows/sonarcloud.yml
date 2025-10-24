@@ -36,6 +36,21 @@ jobs:
           pip install -r requirements.txt
           pip install coverage pytest pytest-cov pytest-django
 
+      - name: Start MariaDB
+        run: |
+          docker run -d \
+            --name mariadb-test \
+            -e MYSQL_ROOT_PASSWORD=test_root_password \
+            -e MYSQL_DATABASE=illuminati \
+            -e MYSQL_USER=mason \
+            -e MYSQL_PASSWORD=test_password \
+            -p 3306:3306 \
+            mariadb:latest
+
+          echo "waiting for mariaDB to be ready"
+          sleep 15
+          docker exec mariadb-test mysqladmin ping -h localhost -u root -ptest_root_password --wait=30
+
       - name: Run tests with coverage
         run: |
           coverage run --source='.' manage.py test
