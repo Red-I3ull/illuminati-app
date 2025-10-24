@@ -6,9 +6,9 @@ services:
     restart: always
     environment:
       MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
-      MARIADB_DATABASE: ${MARIADB_DATABASE}
-      MARIADB_USER: ${MARIADB_USER}
-      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      MARIADB_DATABASE: ${DBNAME}
+      MARIADB_USER: ${DBUSER}
+      MARIADB_PASSWORD: ${DBPASSWORD}
     ports:
       - "3306:3306"
     healthcheck:
@@ -17,7 +17,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-  web:
+  backend:
     build: .
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000" 
     volumes:
