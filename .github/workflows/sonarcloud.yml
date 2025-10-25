@@ -48,8 +48,11 @@ jobs:
             mariadb:latest
 
           echo "waiting for mariaDB to be ready"
-          sleep 20
-          docker exec mariadb-test mysqladmin ping -h localhost -u root -ptest_root_password --wait=30
+          until [ "$(docker inspect -f {{.State.Health.Status}} mariadb-test)" == "healthy" ]; do
+            echo "Waiting for MariaDB to be healthy..."
+            sleep 2
+          done
+          echo "MariaDB is ready!"
 
       - name: Run tests with coverage
         run: |
