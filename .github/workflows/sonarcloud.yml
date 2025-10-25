@@ -60,6 +60,11 @@ jobs:
         continue-on-error: false
         env:
           DJANGO_SETTINGS_MODULE: auth.settings
+          DBNAME: illuminati
+          DBUSER: mason
+          DBPASSWORD: password
+          DBHOST: localhost
+          DBPORT: 3306
 
       - name: Override Coverage Source Path for SonarCloud
         run: |
