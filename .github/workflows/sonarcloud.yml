@@ -46,6 +46,10 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
+      - name: Grant test database privileges
+        run: |
+          docker exec ${{ job.services.mariadb.id }} mariadb -u root -ptest_root_password -e "GRANT ALL PRIVILEGES ON test_illuminati.* TO 'mason'@'%'; FLUSH PRIVILEGES;"
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
