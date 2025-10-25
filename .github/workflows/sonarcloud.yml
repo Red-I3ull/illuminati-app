@@ -48,7 +48,7 @@ jobs:
             mariadb:latest
 
           echo "waiting for mariaDB to be ready"
-          sleep 15
+          sleep 20
           docker exec mariadb-test mysqladmin ping -h localhost -u root -ptest_root_password --wait=30
 
       - name: Run tests with coverage
