@@ -18,6 +18,22 @@ jobs:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
 
+    services:
+      mariadb:
+        image: mariadb:latest
+        env:
+          MYSQL_ROOT_PASSWORD: test_root_password
+          MYSQL_DATABASE: illuminati
+          MYSQL_USER: mason
+          MYSQL_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mariadb -u root -ptest_root_password -e 'SELECT 1' || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,6 +45,10 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+
+      - name: Grant test database privileges
+        run: |
+          docker exec ${{ job.services.mariadb.id }} mariadb -u root -ptest_root_password -e "GRANT ALL PRIVILEGES ON test_illuminati.* TO 'mason'@'%'; FLUSH PRIVILEGES;"
 
       - name: Install dependencies
         run: |
@@ -44,6 +64,11 @@ jobs:
         continue-on-error: false
         env:
           DJANGO_SETTINGS_MODULE: auth.settings
+          DBNAME: illuminati
+          DBUSER: mason
+          DBPASSWORD: test_password
+          DBHOST: 127.0.0.1
+          DBPORT: 3306
 
       - name: Override Coverage Source Path for SonarCloud
         run: |

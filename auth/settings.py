@@ -1,4 +1,5 @@
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +26,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_extensions',
     'rest_framework',
     'corsheaders',
     'users', 
@@ -81,12 +81,28 @@ REST_FRAMEWORK = {
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+#If you want to use Sqlite3 database instead of Mysql, uncomment the following code block and comment the Mysql DATABASES block.
+'''
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+'''
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': config('DBNAME'),
+        'USER': config('DBUSER'),
+        'PASSWORD': config('DBPASSWORD'),
+        'HOST': config('DBHOST'),
+        'PORT': config('DBPORT')
+    }
+}
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

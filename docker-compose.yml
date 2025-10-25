@@ -1,13 +1,37 @@
 version: '3.8'
 
 services:
-  web:
+  db:
+    image: mariadb:latest
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DBNAME}
+      MARIADB_USER: ${DBUSER}
+      MARIADB_PASSWORD: ${DBPASSWORD}
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 20s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+  backend:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000" 
     volumes:
       - .:/app
     ports:
-      - '8000:8000'
+      - "8000:8000"
+    depends_on:
+       db:
+        condition: service_healthy
     environment:
-      - DEBUG=1
+        DBNAME: ${DBNAME}
+        DBUSER: ${DBUSER}
+        DBPASSWORD: ${DBPASSWORD}
+        DBHOST: db
+        DBPORT: 3306
 
+  
