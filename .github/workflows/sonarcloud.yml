@@ -18,6 +18,22 @@ jobs:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
 
+    services:
+      mariadb:
+        image: mariadb:latest
+        env:
+          MYSQL_ROOT_PASSWORD: test_root_password
+          MYSQL_DATABASE: illuminati
+          MYSQL_USER: mason
+          MYSQL_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -35,24 +51,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install coverage pytest pytest-cov pytest-django
-
-      - name: Start MariaDB
-        run: |
-          docker run -d \
-            --name mariadb-test \
-            -e MYSQL_ROOT_PASSWORD=test_root_password \
-            -e MYSQL_DATABASE=illuminati \
-            -e MYSQL_USER=mason \
-            -e MYSQL_PASSWORD=test_password \
-            -p 3306:3306 \
-            mariadb:latest
-
-          echo "waiting for mariaDB to be ready"
-          until [ "$(docker inspect -f {{.State.Health.Status}} mariadb-test)" == "healthy" ]; do
-            echo "Waiting for MariaDB to be healthy..."
-            sleep 2
-          done
-          echo "MariaDB is ready!"
 
       - name: Run tests with coverage
         run: |
