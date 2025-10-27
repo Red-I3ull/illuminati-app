@@ -1,7 +1,11 @@
 from rest_framework import serializers
-from .models import Marker
+from .models import Marker, EntryPassword
 from django.contrib.auth import get_user_model
+
 User = get_user_model()
+
+class EntryPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(required=True, min_length=8)
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
