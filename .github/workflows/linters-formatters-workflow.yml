@@ -31,6 +31,12 @@ jobs:
 
       - name: Run Pylint
         run: pylint $(git ls-files '*.py') --fail-under=2.7
+        env:
+          DBNAME: 'test_db'
+          DBUSER: 'test_user'
+          DBPASSWORD: test_password
+          DBHOST: 'localhost'
+          DBPORT: '3306'
 
   prettier:
     name: Prettier
