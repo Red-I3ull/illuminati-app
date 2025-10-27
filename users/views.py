@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions 
-from .serializers import * 
-from .models import * 
+from .serializers import LoginSerializer, RegisterSerializer
 from rest_framework.response import Response 
 from django.contrib.auth import get_user_model, authenticate
 from knox.models import AuthToken
