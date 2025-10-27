@@ -42,3 +42,8 @@ class MarkerSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'user': {'write_only': True, 'required': False}
         }
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'role']

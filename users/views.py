@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions
-from .serializers import LoginSerializer, RegisterSerializer, EntryPasswordSerializer
+from .serializers import LoginSerializer, RegisterSerializer, EntryPasswordSerializer, UserSerializer
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model, authenticate
 from knox.models import AuthToken
@@ -71,7 +71,7 @@ class LoginViewset(viewsets.ViewSet):
                 _, token = AuthToken.objects.create(user)
                 return Response(
                     {
-                        "user": self.serializer_class(user).data,
+                        "user": UserSerializer(user).data,
                         "token": token
                     }
                 )

@@ -1,11 +1,11 @@
 from rest_framework import permissions
 from .models import Role
 
-MESSAGE = 'You must have permission to perform that'
+errorMessage = 'You must have permission to perform that'
 
 class IsMasonUser(permissions.BasePermission):
 
-    message = MESSAGE
+    message = errorMessage
 
     def has_permission(self, request, view):
         user_role = getattr(request.user, 'role', None)
@@ -13,7 +13,7 @@ class IsMasonUser(permissions.BasePermission):
 
 class IsSilverUser(permissions.BasePermission):
 
-    message = MESSAGE
+    message = errorMessage
 
     def has_permission(self, request, view):
         user_role = getattr(request.user, 'role', None)
@@ -21,7 +21,7 @@ class IsSilverUser(permissions.BasePermission):
 
 class IsGoldenUser(permissions.BasePermission):
 
-    message = MESSAGE
+    message = errorMessage
 
     def has_permission(self, request, view):
         user_role = getattr(request.user, 'role', None)
@@ -29,7 +29,7 @@ class IsGoldenUser(permissions.BasePermission):
 
 class IsArchitectUser(permissions.BasePermission):
 
-    message = MESSAGE
+    message = errorMessage
 
     def has_permission(self, request, view):
         user_role = getattr(request.user, 'role', None)

@@ -3,3 +3,6 @@ disable=C0115, C0116, C0114, C0304, C0411, C0103
 
 [MASTER]
 load-plugins=pylint_django
+
+[pylint_django]
+django-settings-module=auth.settings
