@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import viewsets, permissions 
+from rest_framework import viewsets, permissions
 from .serializers import * 
 from .models import * 
 from rest_framework.response import Response 
@@ -14,21 +14,21 @@ class LoginViewset(viewsets.ViewSet):
 
     def create(self, request): 
         serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid(): 
+        if serializer.is_valid():
             username = serializer.validated_data['username']
             password = serializer.validated_data['password']
             user = authenticate(request, username=username, password=password)
-            if user: 
+            if user:
                 _, token = AuthToken.objects.create(user)
                 return Response(
                     {
-                        "user": self.serializer_class(user).data,
+                        "user": UserSerializer(user).data,
                         "token": token
                     }
                 )
-            else: 
-                return Response({"error":"Invalid credentials"}, status=401)    
-        else: 
+            else:
+                return Response({"error":"Invalid credentials"}, status=401)
+        else:
             return Response(serializer.errors,status=400)
 
 
