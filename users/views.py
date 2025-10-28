@@ -75,9 +75,9 @@ class LoginViewset(viewsets.ViewSet):
                         "token": token
                     }
                 )
-            else: 
-                return Response({"error":"Invalid credentials"}, status=401)    
-        else: 
+            else:
+                return Response({"error":"Invalid credentials"}, status=401)
+        else:
             return Response(serializer.errors,status=400)
 
 
