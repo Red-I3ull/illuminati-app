@@ -14,6 +14,7 @@ omit =
     */settings.py
     */wsgi.py
     */asgi.py
+    */auth_backend.py
 
 [report]
 exclude_lines =
