@@ -56,8 +56,8 @@ class VerifyEntryPasswordViewsetTests(APITestCase):
 
     def test_verify_entry_password_uses_only_active(self):
         """Test that only active entry password is used"""
-        EntryPassword.objects.create(password='inactive_password', is_active=False)
-        EntryPassword.objects.create(password='active_password', is_active=True)
+        EntryPassword.objects.create(password=test_password, is_active=False)
+        EntryPassword.objects.create(password=test_password, is_active=True)
 
         data = {'password': 'inactive_password'}
         response = self.client.post(self.url, data)
