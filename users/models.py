@@ -64,3 +64,18 @@ class Marker(models.Model):
 
     def __str__(self):
         return str(self.name)
+
+class EntryPassword(models.Model):
+    """Model for entry password."""
+    password = models.CharField(max_length=128)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'entry_password'
+        verbose_name = 'entry Password'
+        verbose_name_plural = 'entry Passwords'
+
+    def __str__(self):
+        return f"entry Password (Active: {self.is_active})"
