@@ -32,6 +32,7 @@ class MarkerSerializer(serializers.ModelSerializer):
             'lat', 
             'lng', 
             'user',
+            'image',
             'created_at'
         ]
 
