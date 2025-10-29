@@ -70,6 +70,16 @@ class MarkerViewSetTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.client.force_authenticate(user=None)
 
+    def test_create_marker_invalid_data_bad_request(self):
+        """
+        Test that creating a marker with 400 Bad Request
+        """
+        self.client.force_authenticate(user=self.architect_user)
+        invalid_data = {"lat": 40.7128, "lng": -74.0060}
+        response = self.client.post(self.create_url, invalid_data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.client.force_authenticate(user=None)
+
     def test_create_for_allowed_users(self):
         """Silver/Golden/Architect can create markers"""
         for user in [self.silver_user, self.golden_user, self.architect_user]:
