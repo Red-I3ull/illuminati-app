@@ -25,7 +25,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: test_root_password
           MYSQL_DATABASE: illuminati
           MYSQL_USER: mason
-          MYSQL_PASSWORD: test_password
+          MYSQL_PASSWORD: ${{ secrets.TEST_PASSWORD }}
         ports:
           - 3306:3306
         options: >-
@@ -66,9 +66,10 @@ jobs:
           DJANGO_SETTINGS_MODULE: auth.settings
           DBNAME: illuminati
           DBUSER: mason
-          DBPASSWORD: test_password
+          DBPASSWORD: ${{ secrets.TEST_PASSWORD }}
           DBHOST: 127.0.0.1
           DBPORT: 3306
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
 
       - name: Override Coverage Source Path for SonarCloud
         run: |
