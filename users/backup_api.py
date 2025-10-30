@@ -1,4 +1,7 @@
-import io, os, zipfile, tempfile
+import io
+import os
+import zipfile
+import tempfile
 from django.http import HttpResponse
 from django.core import serializers
 from django.core.files import File
@@ -42,9 +45,8 @@ class BackupViewSet(viewsets.ViewSet):
         return response
 
     def create(self, request):
-        """
-        Upload the  backup.zip file for restores
-        """
+        """Upload the  backup.zip file for restores"""
+
         backup_file = request.FILES.get('backup_file')
         if not backup_file or not backup_file.name.endswith('.zip'):
             return Response(
