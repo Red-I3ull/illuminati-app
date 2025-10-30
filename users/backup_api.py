@@ -15,9 +15,7 @@ from .permissions import IsArchitectUser
 class BackupViewSet(viewsets.ViewSet):
 
     def get_permissions(self):
-        if self.action == 'create':
-            permission_classes = [permissions.IsAuthenticated, IsArchitectUser]
-        elif self.action == 'list':
+        if self.action in ['create', 'list']:
             permission_classes = [permissions.IsAuthenticated, IsArchitectUser]
         return [permission() for permission in permission_classes]
 
