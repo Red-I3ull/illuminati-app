@@ -40,8 +40,23 @@ class CustomUser(AbstractUser):
     )
     is_inquisitor = models.BooleanField(default=False, help_text="Designates if this user is the current inquisitor")
     last_promotion_attempt = models.DateTimeField(null=True, blank=True)
+    last_known_ip = models.GenericIPAddressField(null=True, blank=True, verbose_name="Last Known IP")
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+
+class BlacklistedIP(models.Model):
+    """Stores IP addresses that are banned from the site."""
+    ip_address = models.GenericIPAddressField(unique=True, verbose_name="Banned IP Address")
+    reason = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'blacklisted_ips'
+        verbose_name = 'Blacklisted IP'
+        verbose_name_plural = 'Blacklisted IPs'
+
+    def __str__(self):
+        return self.ip_address
 
 #Marker model
 class Marker(models.Model):

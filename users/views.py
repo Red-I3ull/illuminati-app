@@ -14,7 +14,7 @@ from .serializers import (
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model, authenticate
 from knox.models import AuthToken
-from .models import EntryPassword, CustomUser, Role, VoteType, Vote, UserVote
+from .models import EntryPassword, CustomUser, Role, VoteType, Vote, UserVote, BlacklistedIP
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from .permissions import (
@@ -81,7 +81,13 @@ class LoginViewset(viewsets.ViewSet):
             username = serializer.validated_data['username']
             password = serializer.validated_data['password']
             user = authenticate(request, username=username, password=password)
-            if user: 
+            if user:
+
+                ip = request.META.get('REMOTE_ADDR')
+                if ip and user.last_known_ip != ip:
+                    user.last_known_ip = ip
+                    user.save(update_fields=['last_known_ip'])
+
                 _, token = AuthToken.objects.create(user)
                 return Response(
                     {
@@ -337,8 +343,17 @@ class EndVoteView(generics.GenericAPIView):
 
         if passed and vote.target_user:
             if vote.vote_type.name == 'BAN':
-                vote.target_user.is_active = False
-                vote.target_user.save(update_fields=['is_active'])
+                target_user = vote.target_user
+                target_user.is_active = False
+                target_user.save(update_fields=['is_active'])
+                if target_user.last_known_ip:
+                    ip_to_ban = target_user.last_known_ip
+                    obj, created = BlacklistedIP.objects.get_or_create(
+                        ip_address=ip_to_ban,
+                        defaults={'reason': f'Banned by vote {vote.id}'}
+                    )
+                    if created:
+                        print(f"IP {ip_to_ban} added to blacklist.")
                 print(f"user {vote.target_user.username} was baned by voting {vote.id}. Total vote cast {total_votes_cast}") # add logging
             # add promotion logic here ))))
 

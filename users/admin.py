@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import EntryPassword, CustomUser, Marker, VoteType, Vote, UserVote
+from .models import EntryPassword, CustomUser, Marker, VoteType, Vote, UserVote, BlacklistedIP
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 @admin.register(EntryPassword)
@@ -48,3 +48,10 @@ class UserVoteAdmin(admin.ModelAdmin):
 
     vote_id.short_description = 'Vote ID'
     vote_id.admin_order_field = 'vote__id'
+
+@admin.register(BlacklistedIP)
+class BlacklistedIPAdmin(admin.ModelAdmin):
+    list_display = ('ip_address', 'reason', 'created_at')
+    search_fields = ('ip_address', 'reason')
+    readonly_fields = ('created_at',)
+
