@@ -13,13 +13,8 @@ from knox.models import AuthToken
 
 # Local
 from .models import EntryPassword, Invite, Role
-from .serializers import (
-    LoginSerializer,
-    RegisterSerializer,
-    EntryPasswordSerializer,
-    UserSerializer,
-    InviteSerializer,
-)
+from .serializers import LoginSerializer, RegisterSerializer, EntryPasswordSerializer, UserSerializer
+
 
 User = get_user_model()
 
