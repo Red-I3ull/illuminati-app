@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from .map_api import MarkerView
+from .backup_api import BackupViewSet
 from rest_framework.routers import DefaultRouter
 from .views import (
     RegisterViewset, LoginViewset, VerifyEntryPasswordViewset,
@@ -23,3 +24,5 @@ urlpatterns = [
     path('scheduler/end-vote/<int:vote_id>/', EndVoteView.as_view(), name='scheduler-end-vote'),
     path('', include(router.urls)),
 ]
+router.register('backup', BackupViewSet, basename='backup')
+urlpatterns = router.urls
