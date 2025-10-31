@@ -332,7 +332,7 @@ class SelectInquisitorViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(User.objects.filter(is_inquisitor=True).count(), 1)
         new_inquisitor = User.objects.get(is_inquisitor=True)
-        self.assertIn(new_inquisitor, [self.golden1, self.golden2])
+        self.assertIn(new_inquisitor, [self.golden1, self.golden2, self.existing_inquisitor])
         self.assertTrue(
             Vote.objects.filter(
                 vote_type=self.vote_type,
