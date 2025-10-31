@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Marker, EntryPassword
+from .models import Marker, EntryPassword , Invite
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -18,14 +18,29 @@ class LoginSerializer(serializers.Serializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(validators=[])
+
     class Meta:
         model = User
-        fields = ('id','email','username','password')
-        extra_kwargs = { 'password': {'write_only':True}}
+        fields = ('id', 'email', 'username', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def validate_email(self, value):
+        if not User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email not registered.")
+        return value
 
     def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
+        user = User.objects.get(email=validated_data['email'])
+        user.username = validated_data.get('username', user.username)
+        user.set_password(validated_data['password'])
+        user.save()
         return user
+
+class InviteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invite
+        fields = ['id', 'email', 'created_at', 'accepted']
 
 class MarkerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,6 +51,7 @@ class MarkerSerializer(serializers.ModelSerializer):
             'lat', 
             'lng', 
             'user',
+            'image',
             'created_at'
         ]
 

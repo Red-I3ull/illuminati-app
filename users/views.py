@@ -1,12 +1,25 @@
-from django.shortcuts import render
-from rest_framework import viewsets, permissions
-from .serializers import LoginSerializer, RegisterSerializer, EntryPasswordSerializer, UserSerializer
-from rest_framework.response import Response
+# Django
 from django.contrib.auth import get_user_model, authenticate
-from knox.models import AuthToken
-from .models import EntryPassword
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+
+# Django REST Framework
+from rest_framework import viewsets, permissions , status
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.response import Response
+
+# Third-party
+from knox.models import AuthToken
+
+# Local
+from .models import EntryPassword, Invite, Role
+from .serializers import (
+    LoginSerializer,
+    RegisterSerializer,
+    EntryPasswordSerializer,
+    UserSerializer,
+    InviteSerializer,
+)
 
 User = get_user_model()
 
@@ -82,15 +95,29 @@ class LoginViewset(viewsets.ViewSet):
 
 
 
-class RegisterViewset(viewsets.ViewSet):
+class RegisterViewset(viewsets.GenericViewSet):
     permission_classes = [permissions.AllowAny]
-    queryset = User.objects.all()
     serializer_class = RegisterSerializer
+    queryset = User.objects.all()
 
-    def create(self,request):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        else: 
-            return Response(serializer.errors,status=400)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        _, token = AuthToken.objects.create(user)
+
+        return Response({
+            "user": RegisterSerializer(user).data,
+            "token": token
+        }, status=status.HTTP_201_CREATED)
+
+class InviteViewSet(viewsets.ModelViewSet):
+    queryset = Invite.objects.all()
+    serializer_class = InviteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        if self.request.user.role not in [Role.GOLDEN, Role.ARCHITECT]:
+            raise PermissionDenied("You do not have permission to create invites.")
+        serializer.save(invited_by=self.request.user)

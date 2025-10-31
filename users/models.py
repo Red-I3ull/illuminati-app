@@ -53,7 +53,7 @@ class Marker(models.Model):
         null=True,
         blank=True
     )
-
+    image = models.ImageField(upload_to='marker_photos/', null=True, blank=True)
     created_at = models.DateTimeField(
         auto_now_add=True,
         editable=False
@@ -79,3 +79,13 @@ class EntryPassword(models.Model):
 
     def __str__(self):
         return f"entry Password (Active: {self.is_active})"
+
+class Invite(models.Model):
+    email = models.EmailField(unique=True)
+    invited_by = models.ForeignKey(
+        'CustomUser',
+        on_delete=models.CASCADE,
+        related_name='sent_invites'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    accepted = models.BooleanField(default=False)
