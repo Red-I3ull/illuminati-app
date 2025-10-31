@@ -5,6 +5,7 @@ from .vote_api import(
     SelectInquisitorView, EndVoteView
 )
 from .map_api import MarkerView
+from .backup_api import BackupViewSet
 from rest_framework.routers import DefaultRouter
 from .views import (
     RegisterViewset, LoginViewset, VerifyEntryPasswordViewset,
