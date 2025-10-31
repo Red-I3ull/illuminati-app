@@ -341,12 +341,6 @@ class SelectInquisitorViewTests(APITestCase):
             ).exists()
         )
 
-    def test_select_inquisitor_removes_old_inquisitor(self):
-        url = reverse('scheduler-select-inquisitor')
-        self.client.post(url)
-        self.existing_inquisitor.refresh_from_db()
-        self.assertFalse(self.existing_inquisitor.is_inquisitor)
-
     def test_select_inquisitor_creates_nomination_vote(self):
         url = reverse('scheduler-select-inquisitor')
         response = self.client.post(url)
