@@ -104,7 +104,7 @@ class SerializerTests(APITestCase):
         user = serializer.save()
         self.assertEqual(user.username, "newname")
         self.assertTrue(user.check_password("newpass123"))
-        
+
 class RegisterAPITests(APITestCase):
     def setUp(self):
         self.client = APIClient()
@@ -115,7 +115,7 @@ class RegisterAPITests(APITestCase):
         )
 
     def test_register_with_nonexistent_email_fails(self):
-        url = reverse("register-list")  # якщо у тебе ViewSet з basename="register"
+        url = reverse("register-list")  
         response = self.client.post(url, {
             "email": "nouser@example.com",
             "username": "newname",
@@ -134,3 +134,37 @@ class RegisterAPITests(APITestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.username, "newname")
         self.assertTrue(self.user.check_password("newpass123"))
+
+class LoginAPITests(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username="testuser",
+            email="test@example.com",
+            password="secret123"
+        )
+       
+        self.url = reverse("login-list")
+
+    def test_login_success(self):
+        response = self.client.post(self.url, {
+            "username": "testuser",
+            "password": "secret123"
+        }, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("token", response.data)
+        self.assertEqual(response.data["user"]["username"], "testuser")
+
+    def test_login_invalid_credentials(self):
+        response = self.client.post(self.url, {
+            "username": "testuser",
+            "password": "wrongpass"
+        }, format="json")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data["error"], "Invalid credentials")
+
+    def test_login_missing_fields(self):
+        response = self.client.post(self.url, {
+            "username": "testuser"
+        }, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
