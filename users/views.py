@@ -106,14 +106,3 @@ class RegisterViewset(viewsets.GenericViewSet):
             "user": RegisterSerializer(user).data,
             "token": token
         }, status=status.HTTP_201_CREATED)
-'''
-class InviteViewSet(viewsets.ModelViewSet):
-    queryset = Invite.objects.all()
-    serializer_class = InviteSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def perform_create(self, serializer):
-        if self.request.user.role not in [Role.GOLDEN, Role.ARCHITECT]:
-            raise PermissionDenied("You do not have permission to create invites.")
-        serializer.save(invited_by=self.request.user)
-'''
