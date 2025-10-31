@@ -14,7 +14,6 @@ from rest_framework.response import Response
 from .models import Role, VoteType, Vote, UserVote, BlacklistedIP
 
 from .permissions import (
-    IsSilverUser, IsGoldenUser, IsArchitectUser,
     IsInquisitor, CanNominateForBan, CanVoteOnThis
 )
 
@@ -253,7 +252,7 @@ class EndVoteView(generics.GenericAPIView):
                 target_user.save(update_fields=['is_active'])
                 if target_user.last_known_ip:
                     ip_to_ban = target_user.last_known_ip
-                    obj, created = BlacklistedIP.objects.get_or_create(
+                    _, created = BlacklistedIP.objects.get_or_create(
                         ip_address=ip_to_ban,
                         defaults={'reason': f'Banned by vote {vote.id}'}
                     )

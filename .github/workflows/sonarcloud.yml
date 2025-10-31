@@ -70,6 +70,8 @@ jobs:
           DBHOST: 127.0.0.1
           DBPORT: 3306
           TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+          IP_ADDRESS: 192.168.0.1
+          BANNED_IP: 192.168.0.200
 
       - name: Override Coverage Source Path for SonarCloud
         run: |
