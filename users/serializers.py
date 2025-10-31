@@ -36,12 +36,12 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
-
+'''
 class InviteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invite
         fields = ['id', 'email', 'created_at', 'accepted']
-
+'''
 class MarkerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Marker
