@@ -17,15 +17,24 @@ class LoginSerializer(serializers.Serializer):
         ret.pop('password', None)
         return ret
 
-
 class RegisterSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(validators=[])
+
     class Meta:
         model = User
-        fields = ('id','email','username','password')
-        extra_kwargs = { 'password': {'write_only':True}}
+        fields = ('id', 'email', 'username', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def validate_email(self, value):
+        if not User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email not registered.")
+        return value
 
     def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
+        user = User.objects.get(email=validated_data['email'])
+        user.username = validated_data.get('username', user.username)
+        user.set_password(validated_data['password'])
+        user.save()
         return user
 
 class MarkerSerializer(serializers.ModelSerializer):
