@@ -1,4 +1,9 @@
 # Django
+from rest_framework import viewsets, permissions
+from .serializers import (
+    LoginSerializer, RegisterSerializer, EntryPasswordSerializer, UserSerializer
+)
+from rest_framework.response import Response
 from django.contrib.auth import get_user_model, authenticate
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -75,7 +80,13 @@ class LoginViewset(viewsets.ViewSet):
             username = serializer.validated_data['username']
             password = serializer.validated_data['password']
             user = authenticate(request, username=username, password=password)
-            if user: 
+            if user:
+
+                ip = request.META.get('REMOTE_ADDR')
+                if ip and user.last_known_ip != ip:
+                    user.last_known_ip = ip
+                    user.save(update_fields=['last_known_ip'])
+
                 _, token = AuthToken.objects.create(user)
                 return Response(
                     {
