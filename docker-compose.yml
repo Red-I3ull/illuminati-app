@@ -33,5 +33,19 @@ services:
         DBPASSWORD: ${DBPASSWORD}
         DBHOST: db
         DBPORT: 3306
+  #go-scheduler:
+  #  build: ./go-scheduler   
+  #  restart: always
+  #  depends_on:
+  #    db:
+  #      condition: service_healthy
+  #  environment:
+  #    DBNAME: ${DBNAME}
+  #    DBUSER: ${DBUSER}
+  #    DBPASSWORD: ${DBPASSWORD}
+  #    DBHOST: db
+  #    DBPORT: 3306
+  #    SMTP_EMAIL: ${SMTP_EMAIL}
+  #    SMTP_PASS: ${SMTP_PASS}
 
   
