@@ -17,7 +17,6 @@ class LoginSerializer(serializers.Serializer):
         ret.pop('password', None)
         return ret
 
-
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(validators=[])
 
