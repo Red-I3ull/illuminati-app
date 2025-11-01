@@ -22,7 +22,8 @@ class BackupViewSetUnitTest(TestCase):
         self.mock_permissions = patcher.start()
         self.addCleanup(patcher.stop)
 
-        self.fake_json_content = b'[{"model": "users.marker", "pk": 1, "fields": {"name": "Test", "lat": 10, "lng": 20, "image": "path/to/image.png"}}]'
+        self.fake_json_content = (b'[{"model": "users.marker", "pk": 1, "fields": '
+                                  b'{"name": "Test", "lat": 10, "lng": 20, "image": "path/to/image.png"}}]')
         self.fake_json_file = SimpleUploadedFile(
             "backup.json",
             self.fake_json_content,
