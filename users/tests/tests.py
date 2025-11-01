@@ -158,7 +158,7 @@ class LoginAPITests(APITestCase):
     def test_login_invalid_credentials(self):
         response = self.client.post(self.url, {
             "username": "testuser",
-            "password": "wrongpass"
+            "password": test_password + "wrong"
         }, format="json")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.data["error"], "Invalid credentials")
