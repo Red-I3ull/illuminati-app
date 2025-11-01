@@ -72,6 +72,7 @@ jobs:
           TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
           IP_ADDRESS: 192.168.0.1
           BANNED_IP: 192.168.0.200
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
 
       - name: Override Coverage Source Path for SonarCloud
         run: |
