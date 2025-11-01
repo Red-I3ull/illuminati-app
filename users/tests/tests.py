@@ -111,7 +111,7 @@ class RegisterAPITests(APITestCase):
         self.user = User.objects.create_user(
             username="oldname",
             email="test@example.com",
-            password="oldpass123"
+            password=test_password
         )
 
     def test_register_with_nonexistent_email_fails(self):
@@ -119,7 +119,7 @@ class RegisterAPITests(APITestCase):
         response = self.client.post(url, {
             "email": "nouser@example.com",
             "username": "newname",
-            "password": "newpass123"
+            "password": test_password
         }, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -128,12 +128,12 @@ class RegisterAPITests(APITestCase):
         response = self.client.post(url, {
             "email": "test@example.com",
             "username": "newname",
-            "password": "newpass123"
+            "password": test_password
         }, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.user.refresh_from_db()
         self.assertEqual(self.user.username, "newname")
-        self.assertTrue(self.user.check_password("newpass123"))
+        self.assertTrue(self.user.check_password(test_password))
 
 class LoginAPITests(APITestCase):
     def setUp(self):
@@ -141,7 +141,7 @@ class LoginAPITests(APITestCase):
         self.user = User.objects.create_user(
             username="testuser",
             email="test@example.com",
-            password="secret123"
+            password=test_password
         )
        
         self.url = reverse("login-list")
@@ -149,7 +149,7 @@ class LoginAPITests(APITestCase):
     def test_login_success(self):
         response = self.client.post(self.url, {
             "username": "testuser",
-            "password": "secret123"
+            "password": test_password
         }, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("token", response.data)
