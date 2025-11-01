@@ -80,11 +80,11 @@ class SerializerTests(APITestCase):
         self.user = User.objects.create_user(
             username="oldname",
             email="test@example.com",
-            password="oldpass123"
+            password=test_password
         )
 
     def test_login_serializer_removes_password(self):
-        data = {"username": "oldname", "password": "oldpass123"}
+        data = {"username": "oldname", "password": test_password}
         serializer = LoginSerializer(data=data)
         self.assertTrue(serializer.is_valid())
         rep = serializer.data
@@ -142,8 +142,7 @@ class LoginAPITests(APITestCase):
             username="testuser",
             email="test@example.com",
             password=test_password
-        )
-       
+        )      
         self.url = reverse("login-list")
 
     def test_login_success(self):
