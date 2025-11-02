@@ -5,6 +5,8 @@ from rest_framework import status
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from users.models import EntryPassword
+from rest_framework.exceptions import ValidationError
+from users.serializers import LoginSerializer, RegisterSerializer
 
 load_dotenv()
 
@@ -72,3 +74,96 @@ class VerifyEntryPasswordViewsetTests(APITestCase):
         response = self.client.post(self.url, data)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+class SerializerTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="oldname",
+            email="test@example.com",
+            password=test_password
+        )
+
+    def test_login_serializer_removes_password(self):
+        data = {"username": "oldname", "password": test_password}
+        serializer = LoginSerializer(data=data)
+        self.assertTrue(serializer.is_valid())
+        rep = serializer.data
+        self.assertNotIn("password", rep)
+        self.assertEqual(rep["username"], "oldname")
+
+    def test_register_serializer_fails_if_email_not_in_db(self):
+        data = {"email": "nouser@example.com", "username": "newname", "password": "newpass123"}
+        serializer = RegisterSerializer(data=data)
+        with self.assertRaises(ValidationError):
+            serializer.is_valid(raise_exception=True)
+
+    def test_register_serializer_updates_existing_user(self):
+        data = {"email": "test@example.com", "username": "newname", "password": "newpass123"}
+        serializer = RegisterSerializer(data=data)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        user = serializer.save()
+        self.assertEqual(user.username, "newname")
+        self.assertTrue(user.check_password("newpass123"))
+
+class RegisterAPITests(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username="oldname",
+            email="test@example.com",
+            password=test_password
+        )
+
+    def test_register_with_nonexistent_email_fails(self):
+        url = reverse("register-list")  
+        response = self.client.post(url, {
+            "email": "nouser@example.com",
+            "username": "newname",
+            "password": test_password
+        }, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_register_with_existing_email_updates_user(self):
+        url = reverse("register-list")
+        response = self.client.post(url, {
+            "email": "test@example.com",
+            "username": "newname",
+            "password": test_password
+        }, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.username, "newname")
+        self.assertTrue(self.user.check_password(test_password))
+
+class LoginAPITests(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username="testuser",
+            email="test@example.com",
+            password=test_password
+        )      
+        self.url = reverse("login-list")
+
+    def test_login_success(self):
+        response = self.client.post(self.url, {
+            "username": "testuser",
+            "password": test_password
+        }, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("token", response.data)
+        self.assertEqual(response.data["user"]["username"], "testuser")
+
+    def test_login_invalid_credentials(self):
+        response = self.client.post(self.url, {
+            "username": "testuser",
+            "password": test_password + "wrong"
+        }, format="json")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data["error"], "Invalid credentials")
+
+    def test_login_missing_fields(self):
+        response = self.client.post(self.url, {
+            "username": "testuser"
+        }, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
