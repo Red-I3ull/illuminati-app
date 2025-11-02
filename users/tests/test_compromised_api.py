@@ -43,7 +43,7 @@ class CompromisedViewSetTestCase(TestCase):
         self.assertEqual(EntryPassword.objects.filter(is_active=True).count(), 0)
 
         updated_user = CustomUser.objects.get(id=self.user.id)
-        self.assertEqual(updated_user.password, ' ')
+        self.assertEqual(updated_user.password, '')
         self.assertIsNone(updated_user.username)
 
     @patch('users.compromised_api.Marker.objects.all')
