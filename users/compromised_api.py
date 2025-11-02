@@ -23,7 +23,7 @@ class CompromisedViewSet(viewsets.ViewSet):
 
             user_count = CustomUser.objects.all().update(
                 username=None,
-                password=' '
+                password=''
             )
 
             response_data = {
