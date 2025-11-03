@@ -1,8 +1,14 @@
 import pytest
+import os
+from dotenv import load_dotenv
 from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 from users.models import CustomUser
+
+
+
+test_password = os.environ.get('TEST_PASSWORD')
 
 @pytest.fixture
 def api_client():
@@ -12,7 +18,7 @@ def api_client():
 def golden_user(db):
     return CustomUser.objects.create_user(
         email="golden@example.com",
-        password="pass1234",
+        password=test_password,
         role="GOLDEN",
         is_active=True
     )
@@ -21,7 +27,7 @@ def golden_user(db):
 def mason_user(db):
     return CustomUser.objects.create_user(
         email="mason@example.com",
-        password="pass1234",
+        password=test_password,
         role="MASON",
         is_active=True
     )
@@ -52,7 +58,7 @@ def test_invite_fails_if_not_allowed_role(api_client, mason_user):
 def test_invite_fails_if_email_exists(api_client, golden_user):
     existing = CustomUser.objects.create_user(
         email="exists@example.com",
-        password="pass1234",
+        password=test_password,
         role="MASON"
     )
     api_client.force_authenticate(user=golden_user)
