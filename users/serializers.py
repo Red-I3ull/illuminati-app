@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 User = get_user_model()
- 
+
 class EntryPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(required=True, min_length=8)
 
@@ -137,6 +137,17 @@ class VoteSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
+        fields = [
+            'id', 'username', 'email',
+            'role', 'is_inquisitor', 'last_promotion_attempt',
+            'role_assigned_at'
+        ]
+        read_only_fields = [
+            'role', 'is_inquisitor',
+            'last_promotion_attempt',
+            'role_assigned_at'
+        ]
+
         fields = ['id', 'username', 'email', 'role', 'is_inquisitor', 'last_promotion_attempt']
         read_only_fields = ['role', 'is_inquisitor', 'last_promotion_attempt']
 
@@ -153,5 +164,5 @@ class InviteSerializer(serializers.Serializer):
         inviter = self.context["request"].user
         return User.objects.create(
             email=validated_data["email"],
-            role="MASON",  
+            role="MASON",
         )

@@ -1,6 +1,7 @@
 from rest_framework import permissions
-from .models import Role, Vote, UserVote
+from .models import Role, Vote, CustomUser
 from django.utils import timezone
+from datetime import timedelta
 
 errorMessage = 'You must have permission to perform that'
 
@@ -80,6 +81,42 @@ class CanNominateForBan(permissions.BasePermission):
             self.message = "Error happen when nominate"
             return False
 
+
+class CanInitiatePromotion(permissions.BasePermission):
+    """
+    Checks if a user can start a promotion vote
+    """
+    message = "You are not eligible to start a promotion vote at this time."
+
+    def has_permission(self, request, view):
+        user = request.user
+        if not user or not user.is_authenticated:
+            return False
+
+        cooldown_days = 42
+        if user.last_promotion_attempt:
+            if timezone.now() < user.last_promotion_attempt + timedelta(days=cooldown_days):
+                self.message = f"You can only attempt promotion once every {cooldown_days} days."
+                return False
+
+        if user.role == Role.MASON or user.role == Role.SILVER:
+            return True
+
+        if user.role == Role.GOLDEN:
+            days_as_golden = 42
+            if not user.role_assigned_at or timezone.now() < user.role_assigned_at + timedelta(days=days_as_golden):
+                self.message = f"You must be a Golden Mason for at least {days_as_golden} days."
+                return False
+
+            if CustomUser.objects.filter(role=Role.ARCHITECT, is_active=True).exists():
+                self.message = "An Architect already exists. You cannot be promoted."
+                return False
+
+            return True
+
+        self.message = "Your role cannot be promoted."
+        return False
+
 class CanVoteOnThis(permissions.BasePermission):
     """
     check if users can vote this
@@ -114,12 +151,6 @@ class CanVoteOnThis(permissions.BasePermission):
 
         if "ALL" in eligible_roles:
             return True
-
-        # Special logic for future promotion
-        # if "TARGET_ROLE" in eligible_roles:
-        #
-        #     if user.role == target_role:
-        #         return True
 
         if user.role in eligible_roles:
             return True

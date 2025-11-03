@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
+from django.utils import timezone
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields ):
@@ -41,6 +42,8 @@ class CustomUser(AbstractUser):
     is_inquisitor = models.BooleanField(default=False, help_text="Designates if this user is the current inquisitor")
     last_promotion_attempt = models.DateTimeField(null=True, blank=True)
     last_known_ip = models.GenericIPAddressField(null=True, blank=True, verbose_name="Last Known IP")
+    role_assigned_at = models.DateTimeField(default=timezone.now,
+                                            help_text="When the user was assigned their current role")
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
@@ -124,8 +127,12 @@ class VoteType(models.Model):
     eligible_voter_roles = models.JSONField(default=list)
     pass_condition = models.CharField(
         max_length=50,
-        choices=[('MAJORITY', 'Majority'), ('UNANIMOUS_TARGET', 'Unanimous Target Role'),
-                 ('UNANIMOUS_ALL_VOTED', 'Unanimous Voted')],
+        choices=[
+            ('MAJORITY', 'Majority'),
+            ('UNANIMOUS_TARGET', 'Unanimous Target Role'),
+            ('UNANIMOUS_ALL_VOTED', 'Unanimous Voted'),
+            ('UNANIMOUS_AGREE', 'Unanimous Agree (No Disagree)')
+        ],
         help_text="Is voting successful"
     )
     inquisitor_can_initiate = models.BooleanField(default=False)
