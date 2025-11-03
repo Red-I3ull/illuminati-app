@@ -20,6 +20,7 @@ router.register('markers', MarkerView, basename='markers')
 router.register('votes', VoteViewSet, basename='vote')
 router.register('backup', BackupViewSet, basename='backup')
 router.register('compromised', CompromisedViewSet, basename='compromised')
+router.register('invites', InviteViewSet, basename='invite')
 urlpatterns = [
     path('users/', UserListView.as_view(), name='user-list'),
     path('votes/nominate-ban/', NominateForBanView.as_view(), name='nominate-ban'),
