@@ -210,3 +210,5 @@ __marimo__/
 
 .env
 media/marker_photos/*
+
+/go-scheduler/
