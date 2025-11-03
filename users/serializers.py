@@ -137,5 +137,13 @@ class VoteSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'role', 'is_inquisitor', 'last_promotion_attempt']
-        read_only_fields = ['role', 'is_inquisitor', 'last_promotion_attempt']
+        fields = [
+            'id', 'username', 'email',
+            'role', 'is_inquisitor', 'last_promotion_attempt',
+            'role_assigned_at'
+        ]
+        read_only_fields = [
+            'role', 'is_inquisitor',
+            'last_promotion_attempt',
+            'role_assigned_at'
+        ]

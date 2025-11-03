@@ -1,8 +1,8 @@
 from django.urls import path, include
-from .backup_api import BackupViewSet
 from .vote_api import(
     VoteViewSet, UserListView, NominateForBanView,
-    SelectInquisitorView, EndVoteView
+    SelectInquisitorView, EndVoteView,
+    StartPromotionVoteView, RetireArchitectView
 )
 from .map_api import MarkerView
 from .backup_api import BackupViewSet
@@ -21,6 +21,8 @@ router.register('backup', BackupViewSet, basename='backup')
 urlpatterns = [
     path('users/', UserListView.as_view(), name='user-list'),
     path('votes/nominate-ban/', NominateForBanView.as_view(), name='nominate-ban'),
+    path('votes/promote/', StartPromotionVoteView.as_view(), name='start-promotion'),
+    path('scheduler/retire-architects/', RetireArchitectView.as_view(), name='scheduler-retire-architects'),
     path('scheduler/select-inquisitor/', SelectInquisitorView.as_view(), name='scheduler-select-inquisitor'),
     path('scheduler/end-vote/<int:vote_id>/', EndVoteView.as_view(), name='scheduler-end-vote'),
     path('', include(router.urls)),

@@ -8,13 +8,13 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from .serializers import (
     VoteSerializer, CastVoteSerializer,
-    NominateBanSerializer, BasicUserSerializer
+    NominateBanSerializer, BasicUserSerializer, UserSerializer
 )
 from rest_framework.response import Response
-from .models import Role, VoteType, Vote, UserVote, BlacklistedIP
+from .models import Role, VoteType, Vote, UserVote, BlacklistedIP, CustomUser
 
 from .permissions import (
-    IsInquisitor, CanNominateForBan, CanVoteOnThis
+    IsInquisitor, CanNominateForBan, CanVoteOnThis, CanInitiatePromotion
 )
 
 User = get_user_model()
@@ -198,6 +198,48 @@ class SelectInquisitorView(generics.GenericAPIView):
             print(f"Error creating BAN vote:{e}")
             return Response({"error": "Failed to create a vote for the nomination."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class StartPromotionVoteView(generics.GenericAPIView):
+    """
+    Creates a new promotion vote for the requesting user.
+    """
+    permission_classes = [permissions.IsAuthenticated, CanInitiatePromotion]
+    serializer_class = VoteSerializer
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+
+        if user.role == Role.MASON:
+            vote_type_name = "PROMOTE_SILVER"
+        elif user.role == Role.SILVER:
+            vote_type_name = "PROMOTE_GOLDEN"
+        elif user.role == Role.GOLDEN:
+            vote_type_name = "PROMOTE_ARCHITECT"
+        else:
+            return Response({"error": "Invalid role for promotion."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            vote_type = VoteType.objects.get(name=vote_type_name)
+        except VoteType.DoesNotExist:
+            return Response({"error": f"VoteType '{vote_type_name}' not configured."},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        now = timezone.now()
+        end_time = now + timedelta(hours=vote_type.duration_hours or 24)
+
+        vote = Vote.objects.create(
+            vote_type=vote_type,
+            initiator=user,
+            target_user=user,
+            status=Vote.Status.ACTIVE,
+            start_time=now,
+            end_time=end_time
+        )
+
+        user.last_promotion_attempt = now
+        user.save(update_fields=['last_promotion_attempt'])
+
+        serializer = self.get_serializer(vote)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class EndVoteView(generics.GenericAPIView):
     """
@@ -240,12 +282,17 @@ class EndVoteView(generics.GenericAPIView):
 
         if condition == 'MAJORITY':
             passed = agree_votes > disagree_votes
+        elif condition == 'UNANIMOUS_AGREE':
+            passed = (disagree_votes == 0 and agree_votes > 0)
 
         vote.status = Vote.Status.CLOSED
         vote.outcome = Vote.Outcome.PASSED if passed else Vote.Outcome.FAILED
         vote.save()
 
         if passed and vote.target_user:
+            target_user = vote.target_user
+            now = timezone.now()
+
             if vote.vote_type.name == 'BAN':
                 target_user = vote.target_user
                 target_user.is_active = False
@@ -259,6 +306,53 @@ class EndVoteView(generics.GenericAPIView):
                     if created:
                         print(f"IP {ip_to_ban} added to blacklist.")
                 print(f"user {vote.target_user.username} was baned by voting {vote.id}. Total vote cast {total_votes_cast}") # add logging
-            # add promotion logic here ))))
+
+            elif vote.vote_type.name == 'PROMOTE_SILVER':
+                target_user.role = Role.SILVER
+                target_user.role_assigned_at = now
+                target_user.save(update_fields=['role', 'role_assigned_at'])
+            elif vote.vote_type.name == 'PROMOTE_GOLDEN':
+                target_user.role = Role.GOLDEN
+                target_user.role_assigned_at = now
+                target_user.save(update_fields=['role', 'role_assigned_at'])
+            elif vote.vote_type.name == 'PROMOTE_ARCHITECT':
+                target_user.role = Role.ARCHITECT
+                target_user.role_assigned_at = now
+                target_user.save(update_fields=['role', 'role_assigned_at'])
+
+            return Response({"message": f"voting {vote.id} over. Results: {vote.outcome}"}, status=status.HTTP_200_OK)
 
         return Response({"message": f"voting {vote.id} over. Results: {vote.outcome}"}, status=status.HTTP_200_OK)
+
+class RetireArchitectView(generics.GenericAPIView):
+    """
+    Scheduler job finds an architect older than 42 days old and retires them.
+    """
+    permission_classes = [permissions.AllowAny]
+    serializer_class = UserSerializer
+
+    def post(self, request, *args, **kwargs):
+        now = timezone.now()
+        retirement_days = 42
+
+        architects_to_retire = CustomUser.objects.filter(
+            role=Role.ARCHITECT,
+            is_active=True,
+            role_assigned_at__lt=now - timedelta(days=retirement_days)
+        )
+
+        retired_count = 0
+        for user in architects_to_retire:
+            user.is_active = False
+            user.save(update_fields=['is_active'])
+
+            if user.last_known_ip:
+                BlacklistedIP.objects.get_or_create(
+                    ip_address=user.last_known_ip,
+                    defaults={'reason': 'Retired Architect'}
+                )
+
+            print(f"Architect {user.username} has been retired and banned.")
+            retired_count += 1
+
+        return Response({"message": f"Successfully retired {retired_count} architects."})
