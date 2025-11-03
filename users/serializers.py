@@ -146,7 +146,7 @@ class InviteSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Цей email вже існує")
+            raise serializers.ValidationError("email already exists")
         return value
 
     def create(self, validated_data):

@@ -11,7 +11,7 @@ class InviteViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return User.objects.filter(invited_by=self.request.user)
+        return User.objects.filter(role="MASON")
 
     def perform_create(self, serializer):
         user = self.request.user
