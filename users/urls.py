@@ -6,6 +6,7 @@ from .vote_api import(
 )
 from .map_api import MarkerView
 from .backup_api import BackupViewSet
+from .compromised_api import CompromisedViewSet
 from rest_framework.routers import DefaultRouter
 from .views import (
     RegisterViewset, LoginViewset, VerifyEntryPasswordViewset,
@@ -18,6 +19,7 @@ router.register('login', LoginViewset, basename='login')
 router.register('markers', MarkerView, basename='markers')
 router.register('votes', VoteViewSet, basename='vote')
 router.register('backup', BackupViewSet, basename='backup')
+router.register('compromised', CompromisedViewSet, basename='compromised')
 urlpatterns = [
     path('users/', UserListView.as_view(), name='user-list'),
     path('votes/nominate-ban/', NominateForBanView.as_view(), name='nominate-ban'),
