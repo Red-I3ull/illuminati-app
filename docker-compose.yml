@@ -1,9 +1,10 @@
 version: '3.8'
-
+#for local setup
 services:
   db:
     image: mariadb:latest
     restart: always
+    container_name: illuminati-db
     environment:
       MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
       MARIADB_DATABASE: ${DBNAME}
@@ -20,6 +21,7 @@ services:
   backend:
     build: .
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000" 
+    container_name: illuminati-backend
     volumes:
       - .:/app
     ports:
@@ -33,19 +35,31 @@ services:
         DBPASSWORD: ${DBPASSWORD}
         DBHOST: db
         DBPORT: 3306
-  go-scheduler:
-    build: ./go-scheduler   
-    restart: always
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      DBNAME: ${DBNAME}
-      DBUSER: ${DBUSER}
-      DBPASSWORD: ${DBPASSWORD}
-      DBHOST: db
-      DBPORT: 3306
-      SMTP_EMAIL: ${SMTP_EMAIL}
-      SMTP_PASS: ${SMTP_PASS}
+
+  frontend:
+    build:
+      context: ../illuminati-app-frontend/ #eddit to corresponding local path
+      dockerfile: Dockerfile
+    container_name: illuminati-frontend
+    ports:
+      - '8080:8080'
+    volumes:
+      - ../illuminati-app-frontend/src:/app/src  #eddit to corresponding local path
+      - ../illuminati-app-frontend/node_modules:/app/node_modules
+
+  #go-scheduler:
+  #  build: ./go-scheduler   
+  #  restart: always
+  #  depends_on:
+  #    db:
+  #      condition: service_healthy
+  #  environment:
+  #    DBNAME: ${DBNAME}
+  #    DBUSER: ${DBUSER}
+  #    DBPASSWORD: ${DBPASSWORD}
+  #    DBHOST: db
+  #    DBPORT: 3306
+  #    SMTP_EMAIL: ${SMTP_EMAIL}
+  #    SMTP_PASS: ${SMTP_PASS}
 
   
