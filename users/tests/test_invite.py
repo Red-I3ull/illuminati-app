@@ -4,6 +4,9 @@ from django.urls import reverse
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
+from users.serializers import InviteSerializer
+from users.models import Invite
+from users.invite_api import InviteViewSet
 
 load_dotenv()
 User = get_user_model()

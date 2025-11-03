@@ -2,7 +2,7 @@ from rest_framework import viewsets, permissions
 from rest_framework.exceptions import PermissionDenied
 from django.contrib.auth import get_user_model
 from .models import Invite
-from .serializers import InviteSerializer
+from .serializers import InviteSerializer 
 
 User = get_user_model()
 
