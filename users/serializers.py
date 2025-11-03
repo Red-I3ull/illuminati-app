@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Marker, EntryPassword, CustomUser, Role, VoteType, Vote, UserVote
+from .models import Marker, EntryPassword, CustomUser, Role, VoteType, Vote, UserVote, Invite
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
@@ -147,3 +147,22 @@ class UserSerializer(serializers.ModelSerializer):
             'last_promotion_attempt',
             'role_assigned_at'
         ]
+
+        fields = ['id', 'username', 'email', 'role', 'is_inquisitor', 'last_promotion_attempt']
+        read_only_fields = ['role', 'is_inquisitor', 'last_promotion_attempt']
+
+
+class InviteSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("email already exists")
+        return value
+
+    def create(self, validated_data):
+        inviter = self.context["request"].user
+        return User.objects.create(
+            email=validated_data["email"],
+            role="MASON",
+        )
