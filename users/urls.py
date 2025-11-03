@@ -7,6 +7,7 @@ from .vote_api import(
 from .map_api import MarkerView
 from .backup_api import BackupViewSet
 from .compromised_api import CompromisedViewSet
+from .invite_api import InviteViewSet
 from rest_framework.routers import DefaultRouter
 from .views import (
     RegisterViewset, LoginViewset, VerifyEntryPasswordViewset,
