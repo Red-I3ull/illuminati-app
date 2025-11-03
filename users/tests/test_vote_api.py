@@ -160,7 +160,6 @@ class VoteViewSetTests(BaseVoteTestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_list_votes_shows_eligible_votes_for_golden(self):
-        # Створюємо голосування за бан, яке golden1 може бачити
         active_vote = Vote.objects.create(
             vote_type=self.ban_vote_type,
             initiator=self.inquisitor,
