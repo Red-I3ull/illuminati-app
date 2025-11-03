@@ -1,4 +1,6 @@
 __pycache__
+.pytest_cache
+.github
 *.pyc
 *.pyo
 *.pyd
@@ -13,6 +15,7 @@ build
 .env
 .venv
 venv/
+my_env
 ENV/
 *.log
 db.sqlite3
@@ -22,3 +25,13 @@ db.sqlite3
 *.md
 Dockerfile
 docker-compose.yml
+htmlcov
+maria-db
+media/marker_photos/*
+sonar-project.properties
+.pre-commit-config.yaml
+.prettierrc
+.gitleaks.toml
+README.md
+.coveragerc
+.coverage
