@@ -2,17 +2,17 @@ final def AWS_ROLE_DATA = [
     'dev': [
         roleArn: 'arn:aws:iam::221416552528:role/dev-01-jenkins-deployment-role',
         ecrRegistry: '221416552528.dkr.ecr.us-east-1.amazonaws.com',
-        valuesPath: 'illuminaty-setup/modules/helm-charts/backend/values-dev.yaml'
+        valuesPath: 'backend/values-dev.yaml'
     ],
     'stage': [
         roleArn: 'arn:aws:iam::606207925787:role/stage-01-jenkins-deployment-role',
         ecrRegistry: '606207925787.dkr.ecr.us-east-1.amazonaws.com',
-        valuesPath: 'illuminaty-setup/modules/helm-charts/backend/values-stage.yaml'
+        valuesPath: 'backend/values-stage.yaml'
     ],
     'prod': [
         roleArn: 'arn:aws:iam::145065858657:role/prod-01-jenkins-deployment-role',
         ecrRegistry: '145065858657.dkr.ecr.us-east-1.amazonaws.com',
-        valuesPath: 'illuminaty-setup/modules/helm-charts/backend/values-prod.yaml'
+        valuesPath: 'backend/values-prod.yaml'
     ]
 ]
 
@@ -33,14 +33,16 @@ pipeline {
         ECR_REPOSITORY = 'illuminati-django-backend'
         IMAGE_TAG = "v-${BUILD_NUMBER}"
 
-        GITOPS_REPO = 'illuminati-iac'
+        APP_GIT_REPO = 'illuminati-app-backend'
+
+        GITOPS_REPO = 'backend-illuminati-helm-argo'
         GITOPS_ORG = 'Red-I3ull'
     }
 
     stages {
         stage('Checkout Application Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/Red-I3ull/illuminati-app-backend.git'
+                git branch: 'main', url: 'https://github.com/${GITOPS_ORG}/${APP_GIT_REPO}.git'
                 sh "ls -lart ./*"
             }
         }
