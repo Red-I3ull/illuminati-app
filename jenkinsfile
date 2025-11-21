@@ -42,7 +42,7 @@ pipeline {
     stages {
         stage('Checkout Application Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/${GITOPS_ORG}/${APP_GIT_REPO}.git'
+                git branch: 'main', url: "https://github.com/${GITOPS_ORG}/${APP_GIT_REPO}.git"
                 sh "ls -lart ./*"
             }
         }
