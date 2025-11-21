@@ -1,0 +1,172 @@
+final def AWS_ROLE_DATA = [
+    'dev': [
+        roleArn: 'arn:aws:iam::221416552528:role/dev-01-jenkins-deployment-role',
+        ecrRegistry: '221416552528.dkr.ecr.us-east-1.amazonaws.com',
+        valuesPath: 'backend/values-dev.yaml'
+    ],
+    'stage': [
+        roleArn: 'arn:aws:iam::606207925787:role/stage-01-jenkins-deployment-role',
+        ecrRegistry: '606207925787.dkr.ecr.us-east-1.amazonaws.com',
+        valuesPath: 'backend/values-stage.yaml'
+    ],
+    'prod': [
+        roleArn: 'arn:aws:iam::145065858657:role/prod-01-jenkins-deployment-role',
+        ecrRegistry: '145065858657.dkr.ecr.us-east-1.amazonaws.com',
+        valuesPath: 'backend/values-prod.yaml'
+    ]
+]
+
+pipeline {
+    agent any
+
+    parameters {
+        choice(
+            name: 'TARGET_ENV',
+            choices: ['dev', 'stage', 'prod'],
+            description: 'Which environment do you want to deploy to?'
+        )
+    }
+
+    environment {
+        IMAGE_NAME = 'django-backend'
+        AWS_REGION = 'us-east-1'
+        ECR_REPOSITORY = 'illuminati-django-backend'
+        IMAGE_TAG = "v-${BUILD_NUMBER}"
+
+        APP_GIT_REPO = 'illuminati-app-backend'
+
+        GITOPS_REPO = 'backend-illuminati-helm-argo'
+        GITOPS_ORG = 'Red-I3ull'
+    }
+
+    stages {
+        stage('Checkout Application Code') {
+            steps {
+                git branch: 'main', url: "https://github.com/${GITOPS_ORG}/${APP_GIT_REPO}.git"
+                sh "ls -lart ./*"
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh '''
+                        docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .
+                    '''
+                }
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                script {
+                    def target = AWS_ROLE_DATA[params.TARGET_ENV]
+                    def targetRoleArn = target.roleArn
+                    def targetEcrRegistry = target.ecrRegistry
+
+                    withAWS(
+                        role: targetRoleArn,
+                        roleSessionName: "jenkins-ecr-push-${BUILD_NUMBER}",
+                        region: "${AWS_REGION}"
+                    ) {
+                        sh """
+                            aws ecr get-login-password --region ${AWS_REGION} | \
+                            docker login --username AWS --password-stdin ${targetEcrRegistry}
+
+                            docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${targetEcrRegistry}/${ECR_REPOSITORY}:${IMAGE_TAG}
+
+                            docker push ${targetEcrRegistry}/${ECR_REPOSITORY}:${IMAGE_TAG}
+                        """
+                    }
+                }
+            }
+        }
+
+        stage("Checkout GitOps Repo") {
+            steps {
+                script {
+                    // clean workspace
+                    sh "rm -rf ${GITOPS_REPO}"
+
+                    withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-git-ssh', keyFileVariable: 'SSH_KEY')]) {
+                        sh """
+                            mkdir -p ~/.ssh
+                            ssh-keyscan github.com >> ~/.ssh/known_hosts
+                            GIT_SSH_COMMAND='ssh -i ${SSH_KEY}' git clone git@github.com:${GITOPS_ORG}/${GITOPS_REPO}.git
+                        """ // need for future pushing ability via ssh
+                    }
+                }
+            }
+        }
+
+        stage("Update values.yaml and Create PR") {
+            steps {
+                script {
+                    def target = AWS_ROLE_DATA[params.TARGET_ENV]
+                    def targetEcrRegistry = target.ecrRegistry
+                    def valuesPath = target.valuesPath
+                    def branchName = "update-${params.TARGET_ENV}-backend-${IMAGE_TAG}"
+                    def fullImagePath = "${targetEcrRegistry}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+
+                    dir("${GITOPS_REPO}") {
+                        withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-git-ssh', keyFileVariable: 'SSH_KEY')]) {
+                            sh """
+                                git config user.name "Jenkins-2011"
+                                git config user.email "jenkins.git.hub.2011@gmail.com"
+
+                                git checkout -b ${branchName}
+
+                                echo "=== Current values.yaml ==="
+                                cat ${valuesPath}
+
+                                sed -i 's|repository:.*|repository: "${targetEcrRegistry}/${ECR_REPOSITORY}"|g' ${valuesPath}
+                                sed -i 's|tag:.*|tag: "${IMAGE_TAG}"|g' ${valuesPath}
+
+                                echo "=== Updated values.yaml ==="
+                                cat ${valuesPath}
+
+                                git add ${valuesPath}
+                                git commit -m "Update ${params.TARGET_ENV} backend image to ${IMAGE_TAG}"
+
+                                GIT_SSH_COMMAND='ssh -i ${SSH_KEY}' git push origin ${branchName}
+                            """
+                        }
+
+                        // create PR
+                        withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+                            // using github CLI
+                            sh """
+                                gh pr create \
+                                    --repo ${GITOPS_ORG}/${GITOPS_REPO} \
+                                    --base main \
+                                    --head ${branchName} \
+                                    --title "Deploy backend ${IMAGE_TAG} to ${params.TARGET_ENV}" \
+                                    --body "**Environment:** ${params.TARGET_ENV}
+                                            **Image:** ${fullImagePath}
+                                            **Build:** #${BUILD_NUMBER}
+                                            **Jenkins Job:** ${BUILD_URL}
+
+                                            This PR updates the backend image version in ${params.TARGET_ENV} environment.
+
+                                            Please review and merge to trigger ArgoCD deployment."
+                            """
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // cleanup
+            sh "docker rmi ${IMAGE_NAME}:${BUILD_NUMBER} || true"
+        }
+        success {
+            echo "Pipeline completed successfully! Pull request created for ${params.TARGET_ENV} environment."
+        }
+        failure {
+            echo "Pipeline failed. Please check the logs."
+        }
+    }
+}
